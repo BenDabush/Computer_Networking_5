@@ -5,6 +5,7 @@
 #include <netinet/tcp.h>
 #include <netinet/if_ether.h>
 #include <time.h>
+
 struct ethheader
 {
     u_char ether_dhost[ETHER_ADDR_LEN]; /* destination host address */
@@ -82,7 +83,7 @@ int main()
   struct bpf_program fp;
   char filter_exp[] = "tcp port 9999";
   // ip addrr 127.0.0.1
-  bpf_u_int32 net;
+  bpf_u_int32 net = 0;
   // Step 1: Open live pcap session on NIC with name eth3
   handle = pcap_open_live("lo", BUFSIZ, 1, 1000, errbuf); 
 
