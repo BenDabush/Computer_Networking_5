@@ -64,8 +64,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
     }
 
     tcp_header = (struct tcphdr *)(packet + sizeof(struct ether_header) + sizeof(struct iphdr));
-    int p_data = sizeof(source_ip) + sizeof(dest_ip) + sizeof(tcp_header->source) + sizeof(tcp_header->dest) + sizeof(header->ts.tv_sec) + sizeof(header->len);
-    // printf("%02x \n", packet[p_data]);
     fprintf(fp, "{ source_ip: %s, dest_ip: %s, source_port: %d, dest_port: %d, timestamp: %ld, total_length: %d, cache_flag: %d, steps_flag: %d,type_flag: %d, status_code: %d, cache_control: %d, data: ", source_ip, dest_ip, ntohs(tcp_header->source), ntohs(tcp_header->dest), header->ts.tv_sec, header->len, 0, 0, 0, 0, 0);
     
     for (int i = 0; i < header->len; i++)

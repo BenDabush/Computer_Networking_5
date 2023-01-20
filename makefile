@@ -17,18 +17,6 @@ Gateway: Gateway.o
 
 Sniffer_Spoofer: Sniffer_Spoofer.o
 	$(CC) $(CFLAGS) Sniffer_Spoofer.c -o Sniffer_Spoofer -lpcap
-
-Sniffer.o: Sniffer.c
-	$(CC) $(CFLAGS) Sniffer.c -o Sniffer -lpcap
-	
-Spoofer.o: Spoofer.c
-	$(CC) $(CFLAGS) -c Spoofer.c 
-
-Gateway.o: Gateway.c
-	$(CC) $(CFLAGS) -c Gateway.c
-
-Sniffer_Spoofer.o: Sniffer_Spoofer.c
-	$(CC) $(CFLAGS) -c Sniffer_Spoofer.c
 	
 .PHONY: clean all
 
