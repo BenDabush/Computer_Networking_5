@@ -1,13 +1,15 @@
+#include <string.h>
+#include <netinet/ip_icmp.h>
+#include <stdlib.h>
 #include <pcap.h>
 #include <stdio.h>
-#include <sys/socket.h>
-#include <linux/if_packet.h>
 #include <net/ethernet.h>
+#include <sys/socket.h>
 #include <time.h>
+#include <linux/if_packet.h>
 #include <unistd.h>
-#include <netinet/ip_icmp.h>
-#include <string.h>
-#include <stdlib.h>
+
+
 
 /* Ethernet header */
 struct ethheader
@@ -103,56 +105,42 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *pa
 {
 
     struct ethheader *eth = (struct ethheader *)packet;
-
-    // Find where the IP header starts, and typecast it to the IP Header structure
     struct ipheader *ip = (struct ipheader *)(packet + sizeof(struct ethheader));
     unsigned short iphdrlen = (ip->iph_ihl) * 4;
-
     struct icmphdr *icmph = (struct icmphdr *)(packet + iphdrlen);
+    if ((ntohs(eth->ether_type) == 0x0800) && (icmph->type == 64))
+    {        
+        char buffer[1500];
+        memset(buffer, 0, 1500);
 
-    if (ntohs(eth->ether_type) == 0x0800)
-    {
-        if (icmph->type == 64)
-        {
-            char *temp_dest = inet_ntoa(ip->iph_destip);
-            char *dest = strdup(temp_dest);
+        /*********************************************************
+             Step 1: Fill in the ICMP header.
+            ********************************************************/
+        struct icmpheader *icmp = (struct icmpheader *)(buffer + sizeof(struct ipheader));
+        icmp->icmp_type = 0; // ICMP Type: 8 is request, 0 is reply.
+        icmp->icmp_seq2 = 1;
 
-            char *temp_source = inet_ntoa(ip->iph_sourceip);
-            char *source = strdup(temp_source);
-            
-            char buffer[1500];
+        // Calculate the checksum for integrity
+        icmp->icmp_chksum = 0;
+        icmp->icmp_chksum = (unsigned short)in_cksum((unsigned short *)icmp, sizeof(struct icmpheader));
 
-            memset(buffer, 0, 1500);
+        /*********************************************************
+             Step 2: Fill in the IP header.
+            ********************************************************/
+        struct ipheader *ipbuffer = (struct ipheader *)buffer;
+        ipbuffer->iph_ver = 4;
+        ipbuffer->iph_ihl = 5;
+        ipbuffer->iph_ttl = 20;
+        ipbuffer->iph_sourceip.s_addr = ip->iph_destip.s_addr; // CHANGE HERE
+        ipbuffer->iph_destip.s_addr = ip->iph_sourceip.s_addr; // CHANGE HERE
+        ipbuffer->iph_protocol = IPPROTO_ICMP;
+        ipbuffer->iph_len = htons(sizeof(struct ipheader) + sizeof(struct icmpheader));
 
-            /*********************************************************
-               Step 1: Fill in the ICMP header.
-             ********************************************************/
-            struct icmpheader *icmp = (struct icmpheader *)(buffer + sizeof(struct ipheader));
-            icmp->icmp_type = 0; // ICMP Type: 8 is request, 0 is reply.
-            icmp->icmp_seq2 = 1;
-
-            // Calculate the checksum for integrity
-            icmp->icmp_chksum = 0;
-            icmp->icmp_chksum = (unsigned short)in_cksum((unsigned short *)icmp, sizeof(struct icmpheader));
-
-            /*********************************************************
-               Step 2: Fill in the IP header.
-             ********************************************************/
-            struct ipheader *ip = (struct ipheader *)buffer;
-            ip->iph_ver = 4;
-            ip->iph_ihl = 5;
-            ip->iph_ttl = 20;
-            ip->iph_sourceip.s_addr = inet_addr(dest); // CHANGE HERE
-            ip->iph_destip.s_addr = inet_addr(source); // CHANGE HERE
-            ip->iph_protocol = IPPROTO_ICMP;
-            ip->iph_len = htons(sizeof(struct ipheader) + sizeof(struct icmpheader));
-
-            /*********************************************************
-               Step 3: Finally, send the spoofed packet
-             ********************************************************/
-            send_raw_ip_packet(ip);
-            printf("sniff a ICMP request ==> ==> spoof a fake ICMP replay\n");
-        }
+        /*********************************************************
+             Step 3: Finally, send the spoofed packet
+            ********************************************************/
+        send_raw_ip_packet(ipbuffer);
+        printf("sniff a ICMP request ==> ==> spoof a fake ICMP replay\n");
     }
 }
 
