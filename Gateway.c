@@ -98,34 +98,3 @@ int set_Socket_And_Server(int* Socket, struct sockaddr_in* Server, int Port)
     Server->sin_port = htons(Port);
     return 0;
 }
-
-
-
-
-// // create socket for sending datagrams
-// if ((socket_for_sending = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-//     perror("Error in the socket for sending\n");
-//     exit(1);
-// }
-
-// // create socket for receiving datagrams
-// if ((socket_for_receiving = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-//     perror("Error in the socket for receiving\n");
-//     exit(1);
-// }
-
-// // set up server_for_sending information
-// memset((char *)&server_for_sending, 0, sizeof(server_for_sending));
-// server_for_sending.sin_family = AF_INET;
-// if ((hp = gethostbyname(argv[1])) == NULL) {
-//     fprintf(stderr, "Error: host %s not found\n", argv[1]);
-//     exit(1);
-// }
-// memcpy((char *)&server_for_sending.sin_addr, hp->h_addr, hp->h_length);
-// server_for_sending.sin_port = htons(P + 1);
-
-// // set up server_for_receiving information
-// memset((char *)&server_for_receiving, 0, sizeof(server_for_receiving));
-// server_for_receiving.sin_family = AF_INET;
-// server_for_receiving.sin_addr.s_addr = htonl(INADDR_ANY);
-// server_for_receiving.sin_port = htons(P);
